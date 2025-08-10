@@ -198,9 +198,35 @@ const [underline, setUnderline] = useState<boolean>(false);
                     </p>
                   )}
 
-                  {/* Formatting Options */}
-                  <div className="mt-6 space-y-3">
-                    <Label className="text-sm font-medium">Formatting</Label>
+
+                </div>
+
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Preview Section */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Letter Preview</CardTitle>
+                <CardDescription>
+                  Preview of your generated letter
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setIsEditingTemplate((v) => !v)}>
+                        {isEditingTemplate ? 'Preview' : 'Edit Template'}
+                      </Button>
+                      {isEditingTemplate && (
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setCustomTemplate('')}>
+                          Reset to Default
+                        </Button>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="min-w-[180px]">
                         <Label className="text-xs text-muted-foreground">Font</Label>
@@ -233,57 +259,46 @@ const [underline, setUnderline] = useState<boolean>(false);
                     </div>
                   </div>
 
-                  {/* Template Editor */}
-                  <div className="mt-6 space-y-2">
-                    <Label htmlFor="template-editor" className="text-sm font-medium">
-                      Customize Template (use placeholders like {"{{name}}"})
-                    </Label>
+                  {isEditingTemplate ? (
                     <Textarea
                       id="template-editor"
-                      className="min-h-[200px]"
+                      className="min-h-[600px]"
                       value={customTemplate || letterTemplate.template}
                       onChange={(e) => setCustomTemplate(e.target.value)}
+                      style={{
+                        fontFamily:
+                          fontFamily === 'helvetica'
+                            ? 'Helvetica, Arial, sans-serif'
+                            : fontFamily === 'times'
+                            ? '"Times New Roman", Times, serif'
+                            : '"Courier New", Courier, monospace',
+                        fontSize: fontSize,
+                        fontWeight: bold ? 700 : 400,
+                        fontStyle: italic ? 'italic' : 'normal',
+                        textDecoration: underline ? 'underline' : 'none',
+                      }}
                     />
-                    <div className="flex justify-end">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setCustomTemplate('')}>
-                        Reset to Default
-                      </Button>
+                  ) : (
+                    <div className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px]">
+                      <pre
+                        className="leading-relaxed whitespace-pre-wrap text-foreground"
+                        style={{
+                          fontFamily:
+                            fontFamily === 'helvetica'
+                              ? 'Helvetica, Arial, sans-serif'
+                              : fontFamily === 'times'
+                              ? '"Times New Roman", Times, serif'
+                              : '"Courier New", Courier, monospace',
+                          fontSize: fontSize,
+                          fontWeight: bold ? 700 : 400,
+                          fontStyle: italic ? 'italic' : 'normal',
+                          textDecoration: underline ? 'underline' : 'none',
+                        }}
+                      >
+                        {previewContent || "Start filling the form to see your letter preview..."}
+                      </pre>
                     </div>
-                  </div>
-                </div>
-
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Preview Section */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Letter Preview</CardTitle>
-                <CardDescription>
-                  Preview of your generated letter
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px]">
-                  <pre
-                    className="leading-relaxed whitespace-pre-wrap text-foreground"
-                    style={{
-                      fontFamily:
-                        fontFamily === 'helvetica'
-                          ? 'Helvetica, Arial, sans-serif'
-                          : fontFamily === 'times'
-                          ? '"Times New Roman", Times, serif'
-                          : '"Courier New", Courier, monospace',
-                      fontSize: fontSize,
-                      fontWeight: bold ? 700 : 400,
-                      fontStyle: italic ? 'italic' : 'normal',
-                      textDecoration: underline ? 'underline' : 'none',
-                    }}
-                  >
-                    {previewContent || "Start filling the form to see your letter preview..."}
-                  </pre>
+                  )}
                 </div>
               </CardContent>
             </Card>
