@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,14 @@ const [bold, setBold] = useState<boolean>(false);
 const [italic, setItalic] = useState<boolean>(false);
 const [underline, setUnderline] = useState<boolean>(false);
 
+  const editorRef = useRef<HTMLDivElement>(null);
+  const applyFormat = (command: 'bold' | 'italic' | 'underline') => {
+    editorRef.current?.focus();
+    document.execCommand(command, false);
+    const html = editorRef.current?.innerHTML || '';
+    setCustomTemplate(html);
+  };
+
   const letterTemplate = id ? getLetterById(id) : null;
 
   useEffect(() => {
@@ -51,7 +59,8 @@ const [underline, setUnderline] = useState<boolean>(false);
 
       const templateToUse = customTemplate || letterTemplate.template;
       const content = generateLetter(templateToUse, processedData);
-      setPreviewContent(content);
+      const htmlContent = /<\/?[a-z][\s\S]*>/i.test(content) ? content : content.replace(/\n/g, '<br/>');
+      setPreviewContent(htmlContent);
     }
   }, [formData, letterTemplate, customTemplate]);
 
@@ -246,13 +255,13 @@ const [underline, setUnderline] = useState<boolean>(false);
                         <Input type="number" min={8} max={32} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <Toggle pressed={bold} onPressedChange={setBold} aria-label="Toggle bold">
+                        <Toggle pressed={bold} onPressedChange={(v) => { setBold(v); applyFormat('bold'); }} aria-label="Toggle bold">
                           <Bold className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={italic} onPressedChange={setItalic} aria-label="Toggle italic">
+                        <Toggle pressed={italic} onPressedChange={(v) => { setItalic(v); applyFormat('italic'); }} aria-label="Toggle italic">
                           <Italic className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={underline} onPressedChange={setUnderline} aria-label="Toggle underline">
+                        <Toggle pressed={underline} onPressedChange={(v) => { setUnderline(v); applyFormat('underline'); }} aria-label="Toggle underline">
                           <Underline className="h-4 w-4" />
                         </Toggle>
                       </div>
@@ -260,11 +269,13 @@ const [underline, setUnderline] = useState<boolean>(false);
                   </div>
 
                   {isEditingTemplate ? (
-                    <Textarea
+                    <div
                       id="template-editor"
-                      className="min-h-[600px]"
-                      value={customTemplate || letterTemplate.template}
-                      onChange={(e) => setCustomTemplate(e.target.value)}
+                      ref={editorRef}
+                      contentEditable
+                      className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px] whitespace-pre-wrap focus:outline-none"
+                      suppressContentEditableWarning
+                      onInput={(e) => setCustomTemplate((e.currentTarget as HTMLDivElement).innerHTML)}
                       style={{
                         fontFamily:
                           fontFamily === 'helvetica'
@@ -273,14 +284,15 @@ const [underline, setUnderline] = useState<boolean>(false);
                             ? '"Times New Roman", Times, serif'
                             : '"Courier New", Courier, monospace',
                         fontSize: fontSize,
-                        fontWeight: bold ? 700 : 400,
-                        fontStyle: italic ? 'italic' : 'normal',
-                        textDecoration: underline ? 'underline' : 'none',
+                        lineHeight: 1.6,
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: customTemplate || (letterTemplate.template || '').replace(/\n/g, '<br/>'),
                       }}
                     />
                   ) : (
                     <div className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px]">
-                      <pre
+                      <div
                         className="leading-relaxed whitespace-pre-wrap text-foreground"
                         style={{
                           fontFamily:
@@ -290,13 +302,9 @@ const [underline, setUnderline] = useState<boolean>(false);
                               ? '"Times New Roman", Times, serif'
                               : '"Courier New", Courier, monospace',
                           fontSize: fontSize,
-                          fontWeight: bold ? 700 : 400,
-                          fontStyle: italic ? 'italic' : 'normal',
-                          textDecoration: underline ? 'underline' : 'none',
                         }}
-                      >
-                        {previewContent || "Start filling the form to see your letter preview..."}
-                      </pre>
+                        dangerouslySetInnerHTML={{ __html: previewContent || 'Start filling the form to see your letter preview...' }}
+                      />
                     </div>
                   )}
                 </div>
