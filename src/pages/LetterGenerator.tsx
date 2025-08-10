@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Toggle } from '@/components/ui/toggle';
 import { useToast } from '@/hooks/use-toast';
 import { getLetterById } from '@/data/letterTemplates';
 import { generateLetter, formatDate } from '@/utils/letterGenerator';
 import { generatePDF } from '@/utils/pdfGenerator';
 import { LetterData } from '@/types/letter';
-import { ArrowLeft, Download, Eye } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Bold, Italic, Underline } from 'lucide-react';
 
 const LetterGenerator = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +22,12 @@ const LetterGenerator = () => {
   const [formData, setFormData] = useState<LetterData>({});
   const [previewContent, setPreviewContent] = useState('');
   const [isEditingTemplate, setIsEditingTemplate] = useState(false);
-  const [customTemplate, setCustomTemplate] = useState<string>('');
+const [customTemplate, setCustomTemplate] = useState<string>('');
+const [fontFamily, setFontFamily] = useState<'helvetica' | 'times' | 'courier'>('helvetica');
+const [fontSize, setFontSize] = useState<number>(11);
+const [bold, setBold] = useState<boolean>(false);
+const [italic, setItalic] = useState<boolean>(false);
+const [underline, setUnderline] = useState<boolean>(false);
 
   const letterTemplate = id ? getLetterById(id) : null;
 
@@ -67,7 +74,12 @@ const LetterGenerator = () => {
 
     try {
       const filename = `${letterTemplate.title.toLowerCase().replace(/\s+/g, '-')}.pdf`;
-      generatePDF(previewContent, filename);
+      generatePDF(previewContent, filename, {
+        fontFamily,
+        fontSize,
+        fontStyle: bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal',
+        underline,
+      });
       
       toast({
         title: "Success",
@@ -186,6 +198,41 @@ const LetterGenerator = () => {
                     </p>
                   )}
 
+                  {/* Formatting Options */}
+                  <div className="mt-6 space-y-3">
+                    <Label className="text-sm font-medium">Formatting</Label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="min-w-[180px]">
+                        <Label className="text-xs text-muted-foreground">Font</Label>
+                        <Select value={fontFamily} onValueChange={(v) => setFontFamily(v as 'helvetica' | 'times' | 'courier')}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select font" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="helvetica">Helvetica</SelectItem>
+                            <SelectItem value="times">Times New Roman</SelectItem>
+                            <SelectItem value="courier">Courier New</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-[120px]">
+                        <Label className="text-xs text-muted-foreground">Size (px)</Label>
+                        <Input type="number" min={8} max={32} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Toggle pressed={bold} onPressedChange={setBold} aria-label="Toggle bold">
+                          <Bold className="h-4 w-4" />
+                        </Toggle>
+                        <Toggle pressed={italic} onPressedChange={setItalic} aria-label="Toggle italic">
+                          <Italic className="h-4 w-4" />
+                        </Toggle>
+                        <Toggle pressed={underline} onPressedChange={setUnderline} aria-label="Toggle underline">
+                          <Underline className="h-4 w-4" />
+                        </Toggle>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Template Editor */}
                   <div className="mt-6 space-y-2">
                     <Label htmlFor="template-editor" className="text-sm font-medium">
@@ -220,7 +267,21 @@ const LetterGenerator = () => {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px]">
-                  <pre className="text-sm leading-relaxed whitespace-pre-wrap font-mono text-foreground">
+                  <pre
+                    className="leading-relaxed whitespace-pre-wrap text-foreground"
+                    style={{
+                      fontFamily:
+                        fontFamily === 'helvetica'
+                          ? 'Helvetica, Arial, sans-serif'
+                          : fontFamily === 'times'
+                          ? '"Times New Roman", Times, serif'
+                          : '"Courier New", Courier, monospace',
+                      fontSize: fontSize,
+                      fontWeight: bold ? 700 : 400,
+                      fontStyle: italic ? 'italic' : 'normal',
+                      textDecoration: underline ? 'underline' : 'none',
+                    }}
+                  >
                     {previewContent || "Start filling the form to see your letter preview..."}
                   </pre>
                 </div>
