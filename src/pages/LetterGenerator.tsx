@@ -19,7 +19,9 @@ const LetterGenerator = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState<LetterData>({});
   const [previewContent, setPreviewContent] = useState('');
-  
+  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
+  const [customTemplate, setCustomTemplate] = useState<string>('');
+
   const letterTemplate = id ? getLetterById(id) : null;
 
   useEffect(() => {
@@ -39,11 +41,12 @@ const LetterGenerator = () => {
           processedData[key] = formatDate(processedData[key]);
         }
       });
-      
-      const content = generateLetter(letterTemplate.template, processedData);
+
+      const templateToUse = customTemplate || letterTemplate.template;
+      const content = generateLetter(templateToUse, processedData);
       setPreviewContent(content);
     }
-  }, [formData, letterTemplate]);
+  }, [formData, letterTemplate, customTemplate]);
 
   const handleInputChange = (fieldId: string, value: string) => {
     setFormData(prev => ({
@@ -182,7 +185,26 @@ const LetterGenerator = () => {
                       Please fill in all required fields to download
                     </p>
                   )}
+
+                  {/* Template Editor */}
+                  <div className="mt-6 space-y-2">
+                    <Label htmlFor="template-editor" className="text-sm font-medium">
+                      Customize Template (use placeholders like {"{{name}}"})
+                    </Label>
+                    <Textarea
+                      id="template-editor"
+                      className="min-h-[200px]"
+                      value={customTemplate || letterTemplate.template}
+                      onChange={(e) => setCustomTemplate(e.target.value)}
+                    />
+                    <div className="flex justify-end">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setCustomTemplate('')}>
+                        Reset to Default
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+
               </CardContent>
             </Card>
           </div>
