@@ -23,11 +23,37 @@ const LetterGenerator = () => {
   const [previewContent, setPreviewContent] = useState('');
   const [isEditingTemplate, setIsEditingTemplate] = useState(false);
 const [customTemplate, setCustomTemplate] = useState<string>('');
-const [fontFamily, setFontFamily] = useState<'helvetica' | 'times' | 'courier'>('helvetica');
+const [fontFamily, setFontFamily] = useState<string>('helvetica');
 const [fontSize, setFontSize] = useState<number>(11);
 const [bold, setBold] = useState<boolean>(false);
 const [italic, setItalic] = useState<boolean>(false);
 const [underline, setUnderline] = useState<boolean>(false);
+
+  // Font stacks for on-screen rendering
+  const cssFontStacks: Record<string, string> = {
+    helvetica: 'Helvetica, Arial, sans-serif',
+    arial: 'Arial, Helvetica, sans-serif',
+    calibri: 'Calibri, Arial, sans-serif',
+    verdana: 'Verdana, Geneva, sans-serif',
+    timesNewRoman: '"Times New Roman", Times, serif',
+    georgia: 'Georgia, "Times New Roman", serif',
+    garamond: 'Garamond, "Times New Roman", serif',
+    cambria: 'Cambria, Georgia, serif',
+    courierNew: '"Courier New", Courier, monospace',
+  };
+
+  // Map UI choices to jsPDF core fonts
+  const pdfFontMap: Record<string, 'helvetica' | 'times' | 'courier'> = {
+    helvetica: 'helvetica',
+    arial: 'helvetica',
+    calibri: 'helvetica',
+    verdana: 'helvetica',
+    timesNewRoman: 'times',
+    georgia: 'times',
+    garamond: 'times',
+    cambria: 'times',
+    courierNew: 'courier',
+  };
 
   const editorRef = useRef<HTMLDivElement>(null);
   const applyFormat = (command: 'bold' | 'italic' | 'underline') => {
@@ -119,7 +145,7 @@ const [underline, setUnderline] = useState<boolean>(false);
     try {
       const filename = `${letterTemplate.title.toLowerCase().replace(/\s+/g, '-')}.pdf`;
       generatePDF(previewContent, filename, {
-        fontFamily,
+        fontFamily: pdfFontMap[fontFamily],
         fontSize,
         fontStyle: bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal',
         underline,
@@ -274,14 +300,23 @@ const [underline, setUnderline] = useState<boolean>(false);
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="min-w-[180px]">
                         <Label className="text-xs text-muted-foreground">Font</Label>
-                        <Select value={fontFamily} onValueChange={(v) => setFontFamily(v as 'helvetica' | 'times' | 'courier')}>
+                        <Select value={fontFamily} onValueChange={(v) => setFontFamily(v)}>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Select font" />
                           </SelectTrigger>
                           <SelectContent>
+                            {/* Serif */}
+                            <SelectItem value="timesNewRoman">Times New Roman</SelectItem>
+                            <SelectItem value="georgia">Georgia</SelectItem>
+                            <SelectItem value="garamond">Garamond</SelectItem>
+                            <SelectItem value="cambria">Cambria</SelectItem>
+                            {/* Sans-Serif */}
+                            <SelectItem value="arial">Arial</SelectItem>
+                            <SelectItem value="calibri">Calibri</SelectItem>
+                            <SelectItem value="verdana">Verdana</SelectItem>
                             <SelectItem value="helvetica">Helvetica</SelectItem>
-                            <SelectItem value="times">Times New Roman</SelectItem>
-                            <SelectItem value="courier">Courier New</SelectItem>
+                            {/* Monospace */}
+                            <SelectItem value="courierNew">Courier New</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -314,12 +349,7 @@ const [underline, setUnderline] = useState<boolean>(false);
                       onKeyUp={updateToolbarState}
                       onMouseUp={updateToolbarState}
                       style={{
-                        fontFamily:
-                          fontFamily === 'helvetica'
-                            ? 'Helvetica, Arial, sans-serif'
-                            : fontFamily === 'times'
-                            ? '"Times New Roman", Times, serif'
-                            : '"Courier New", Courier, monospace',
+                        fontFamily: cssFontStacks[fontFamily] || 'Helvetica, Arial, sans-serif',
                         fontSize: fontSize,
                         lineHeight: 1.6,
                       }}
@@ -331,15 +361,10 @@ const [underline, setUnderline] = useState<boolean>(false);
                     <div className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px]">
                       <div
                         className="leading-relaxed whitespace-pre-wrap text-foreground"
-                        style={{
-                          fontFamily:
-                            fontFamily === 'helvetica'
-                              ? 'Helvetica, Arial, sans-serif'
-                              : fontFamily === 'times'
-                              ? '"Times New Roman", Times, serif'
-                              : '"Courier New", Courier, monospace',
-                          fontSize: fontSize,
-                        }}
+                          style={{
+                            fontFamily: cssFontStacks[fontFamily] || 'Helvetica, Arial, sans-serif',
+                            fontSize: fontSize,
+                          }}
                         dangerouslySetInnerHTML={{ __html: previewContent || 'Start filling the form to see your letter preview...' }}
                       />
                     </div>
