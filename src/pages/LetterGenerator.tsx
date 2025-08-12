@@ -290,13 +290,13 @@ const [underline, setUnderline] = useState<boolean>(false);
                         <Input type="number" min={8} max={32} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <Toggle pressed={bold} onPressedChange={() => { applyFormat('bold'); }} aria-label="Toggle bold">
+                        <Toggle pressed={false} onPressedChange={() => { applyFormat('bold'); }} aria-label="Toggle bold">
                           <Bold className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={italic} onPressedChange={() => { applyFormat('italic'); }} aria-label="Toggle italic">
+                        <Toggle pressed={false} onPressedChange={() => { applyFormat('italic'); }} aria-label="Toggle italic">
                           <Italic className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={underline} onPressedChange={() => { applyFormat('underline'); }} aria-label="Toggle underline">
+                        <Toggle pressed={false} onPressedChange={() => { applyFormat('underline'); }} aria-label="Toggle underline">
                           <Underline className="h-4 w-4" />
                         </Toggle>
                       </div>
