@@ -33,12 +33,38 @@ const [underline, setUnderline] = useState<boolean>(false);
   const applyFormat = (command: 'bold' | 'italic' | 'underline') => {
     editorRef.current?.focus();
     document.execCommand(command, false);
+    updateToolbarState();
     const html = editorRef.current?.innerHTML || '';
     setCustomTemplate(html);
   };
 
-  const letterTemplate = id ? getLetterById(id) : null;
+  // Sync toolbar button states with current selection formatting
+  const updateToolbarState = () => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0) {
+      setBold(false);
+      setItalic(false);
+      setUnderline(false);
+      return;
+    }
+    const anchorNode = sel.anchorNode as Node | null;
+    if (!anchorNode || !editor.contains(anchorNode)) {
+      setBold(false);
+      setItalic(false);
+      setUnderline(false);
+      return;
+    }
+    try {
+      setBold(document.queryCommandState('bold'));
+      setItalic(document.queryCommandState('italic'));
+      setUnderline(document.queryCommandState('underline'));
+    } catch {
+      // no-op
+    }
+  };
 
+  const letterTemplate = id ? getLetterById(id) : null;
   useEffect(() => {
     if (letterTemplate) {
       // Initialize form with today's date
@@ -64,6 +90,15 @@ const [underline, setUnderline] = useState<boolean>(false);
     }
   }, [formData, letterTemplate, customTemplate]);
 
+  // Update toolbar highlight based on selection inside the editor
+  useEffect(() => {
+    if (!isEditingTemplate) return;
+    const handleSelectionChange = () => updateToolbarState();
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [isEditingTemplate]);
   const handleInputChange = (fieldId: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -255,20 +290,20 @@ const [underline, setUnderline] = useState<boolean>(false);
                         <Input type="number" min={8} max={32} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <Toggle pressed={bold} onPressedChange={(v) => { setBold(v); applyFormat('bold'); }} aria-label="Toggle bold">
+                        <Toggle pressed={bold} onPressedChange={() => { applyFormat('bold'); }} aria-label="Toggle bold">
                           <Bold className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={italic} onPressedChange={(v) => { setItalic(v); applyFormat('italic'); }} aria-label="Toggle italic">
+                        <Toggle pressed={italic} onPressedChange={() => { applyFormat('italic'); }} aria-label="Toggle italic">
                           <Italic className="h-4 w-4" />
                         </Toggle>
-                        <Toggle pressed={underline} onPressedChange={(v) => { setUnderline(v); applyFormat('underline'); }} aria-label="Toggle underline">
+                        <Toggle pressed={underline} onPressedChange={() => { applyFormat('underline'); }} aria-label="Toggle underline">
                           <Underline className="h-4 w-4" />
                         </Toggle>
                       </div>
                     </div>
                   </div>
 
-                  {isEditingTemplate ? (
+                    {isEditingTemplate ? (
                     <div
                       id="template-editor"
                       ref={editorRef}
@@ -276,6 +311,8 @@ const [underline, setUnderline] = useState<boolean>(false);
                       className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px] whitespace-pre-wrap focus:outline-none"
                       suppressContentEditableWarning
                       onInput={(e) => setCustomTemplate((e.currentTarget as HTMLDivElement).innerHTML)}
+                      onKeyUp={updateToolbarState}
+                      onMouseUp={updateToolbarState}
                       style={{
                         fontFamily:
                           fontFamily === 'helvetica'
