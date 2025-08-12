@@ -1,10 +1,12 @@
+export type Country = 'US' | 'UK' | 'INDIA';
+
 export interface LetterTemplate {
   id: string;
   title: string;
   description: string;
   category: string;
   fields: LetterField[];
-  template: string;
+  templates: Record<Country, string>;
 }
 
 export interface LetterField {

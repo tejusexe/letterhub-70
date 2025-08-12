@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getLetterById } from '@/data/letterTemplates';
 import { generateLetter, formatDate } from '@/utils/letterGenerator';
 import { generatePDF } from '@/utils/pdfGenerator';
-import { LetterData } from '@/types/letter';
+import { LetterData, Country } from '@/types/letter';
 import { ArrowLeft, Download, Eye, Bold, Italic, Underline } from 'lucide-react';
 
 const LetterGenerator = () => {
@@ -22,7 +22,8 @@ const LetterGenerator = () => {
   const [formData, setFormData] = useState<LetterData>({});
   const [previewContent, setPreviewContent] = useState('');
   const [isEditingTemplate, setIsEditingTemplate] = useState(false);
-const [customTemplate, setCustomTemplate] = useState<string>('');
+const [country, setCountry] = useState<Country>('INDIA');
+const [customTemplates, setCustomTemplates] = useState<Record<Country, string>>({ US: '', UK: '', INDIA: '' });
 const [fontFamily, setFontFamily] = useState<string>('helvetica');
 const [fontSize, setFontSize] = useState<number>(11);
 const [bold, setBold] = useState<boolean>(false);
@@ -56,14 +57,17 @@ const [underline, setUnderline] = useState<boolean>(false);
   };
 
   const editorRef = useRef<HTMLDivElement>(null);
+  const getCurrentCustomTemplate = () => customTemplates[country] || '';
+  const setCurrentCustomTemplate = (html: string) =>
+    setCustomTemplates(prev => ({ ...prev, [country]: html }));
+
   const applyFormat = (command: 'bold' | 'italic' | 'underline') => {
     editorRef.current?.focus();
     document.execCommand(command, false);
     updateToolbarState();
     const html = editorRef.current?.innerHTML || '';
-    setCustomTemplate(html);
+    setCurrentCustomTemplate(html);
   };
-
   // Sync toolbar button states with current selection formatting
   const updateToolbarState = () => {
     const editor = editorRef.current;
@@ -298,6 +302,19 @@ const [underline, setUnderline] = useState<boolean>(false);
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
+                      <div className="min-w-[140px]">
+                        <Label className="text-xs text-muted-foreground">Country</Label>
+                        <Select value={country} onValueChange={(v) => setCountry(v as Country)}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INDIA">India</SelectItem>
+                            <SelectItem value="US">United States</SelectItem>
+                            <SelectItem value="UK">United Kingdom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div className="min-w-[180px]">
                         <Label className="text-xs text-muted-foreground">Font</Label>
                         <Select value={fontFamily} onValueChange={(v) => setFontFamily(v)}>
@@ -345,7 +362,7 @@ const [underline, setUnderline] = useState<boolean>(false);
                       contentEditable
                       className="bg-muted/20 p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 min-h-[600px] whitespace-pre-wrap focus:outline-none"
                       suppressContentEditableWarning
-                      onInput={(e) => setCustomTemplate((e.currentTarget as HTMLDivElement).innerHTML)}
+                      onInput={(e) => setCurrentCustomTemplate((e.currentTarget as HTMLDivElement).innerHTML)}
                       onKeyUp={updateToolbarState}
                       onMouseUp={updateToolbarState}
                       style={{
@@ -354,7 +371,7 @@ const [underline, setUnderline] = useState<boolean>(false);
                         lineHeight: 1.6,
                       }}
                       dangerouslySetInnerHTML={{
-                        __html: customTemplate || (letterTemplate.template || '').replace(/\n/g, '<br/>'),
+                        __html: (customTemplates[country] || (letterTemplate.templates[country] || '').replace(/\n/g, '<br/>')),
                       }}
                     />
                   ) : (
