@@ -113,12 +113,12 @@ const [underline, setUnderline] = useState<boolean>(false);
         }
       });
 
-      const templateToUse = customTemplate || letterTemplate.template;
+      const templateToUse = getCurrentCustomTemplate() || letterTemplate.templates[country];
       const content = generateLetter(templateToUse, processedData);
       const htmlContent = /<\/?[a-z][\s\S]*>/i.test(content) ? content : content.replace(/\n/g, '<br/>');
       setPreviewContent(htmlContent);
     }
-  }, [formData, letterTemplate, customTemplate]);
+  }, [formData, letterTemplate, getCurrentCustomTemplate, country]);
 
   // Update toolbar highlight based on selection inside the editor
   useEffect(() => {
@@ -296,7 +296,7 @@ const [underline, setUnderline] = useState<boolean>(false);
                         {isEditingTemplate ? 'Preview' : 'Edit Template'}
                       </Button>
                       {isEditingTemplate && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => setCustomTemplate('')}>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentCustomTemplate('')}>
                           Reset to Default
                         </Button>
                       )}
