@@ -302,19 +302,6 @@ const [underline, setUnderline] = useState<boolean>(false);
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="min-w-[140px]">
-                        <Label className="text-xs text-muted-foreground">Country</Label>
-                        <Select value={country} onValueChange={(v) => setCountry(v as Country)}>
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INDIA">India</SelectItem>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="UK">United Kingdom</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                       <div className="min-w-[180px]">
                         <Label className="text-xs text-muted-foreground">Font</Label>
                         <Select value={fontFamily} onValueChange={(v) => setFontFamily(v)}>
