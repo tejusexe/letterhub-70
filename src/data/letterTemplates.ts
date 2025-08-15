@@ -436,9 +436,51 @@ export const searchLetters = (query: string): LetterTemplate[] => {
   if (!query.trim()) return letterTemplates;
   
   const lowercaseQuery = query.toLowerCase();
-  return letterTemplates.filter(letter => 
-    letter.title.toLowerCase().includes(lowercaseQuery) ||
-    letter.description.toLowerCase().includes(lowercaseQuery) ||
-    letter.category.toLowerCase().includes(lowercaseQuery)
-  );
+  return letterTemplates.filter(letter => {
+    // Search in title, description, category
+    const basicMatch = letter.title.toLowerCase().includes(lowercaseQuery) ||
+      letter.description.toLowerCase().includes(lowercaseQuery) ||
+      letter.category.toLowerCase().includes(lowercaseQuery);
+    
+    // Search in field labels and placeholders
+    const fieldMatch = letter.fields.some(field => 
+      field.label.toLowerCase().includes(lowercaseQuery) ||
+      field.placeholder?.toLowerCase().includes(lowercaseQuery)
+    );
+    
+    // Search in template content
+    const templateMatch = Object.values(letter.templates).some(template =>
+      template.toLowerCase().includes(lowercaseQuery)
+    );
+    
+    return basicMatch || fieldMatch || templateMatch;
+  });
+};
+
+export const getSearchSuggestions = (query: string): string[] => {
+  if (!query.trim()) return [];
+  
+  const lowercaseQuery = query.toLowerCase();
+  const suggestions = new Set<string>();
+  
+  letterTemplates.forEach(letter => {
+    // Add title matches
+    if (letter.title.toLowerCase().includes(lowercaseQuery)) {
+      suggestions.add(letter.title);
+    }
+    
+    // Add category matches
+    if (letter.category.toLowerCase().includes(lowercaseQuery)) {
+      suggestions.add(letter.category);
+    }
+    
+    // Add field label matches
+    letter.fields.forEach(field => {
+      if (field.label.toLowerCase().includes(lowercaseQuery)) {
+        suggestions.add(field.label);
+      }
+    });
+  });
+  
+  return Array.from(suggestions).slice(0, 5); // Limit to 5 suggestions
 };
