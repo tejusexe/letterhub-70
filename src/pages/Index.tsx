@@ -5,59 +5,18 @@ import SearchBar from '@/components/SearchBar';
 import LetterCard from '@/components/LetterCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { letterTemplates, searchLetters } from '@/data/letterTemplates';
-import { Country } from '@/types/letter';
-import { FileText, Download, Search, Zap, Globe } from 'lucide-react';
+import { FileText, Download, Search, Zap } from 'lucide-react';
 
 const Index = () => {
-  const [selectedCountry, setSelectedCountry] = useState<Country>('INDIA');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Filter templates based on selected country and search
-  const getFilteredTemplates = () => {
-    return letterTemplates.filter(template => 
-      template.templates[selectedCountry] && 
-      template.templates[selectedCountry].trim() !== ''
-    );
-  };
-
-  const filteredTemplates = getFilteredTemplates();
-  const [searchResults, setSearchResults] = useState(filteredTemplates);
+  const [searchResults, setSearchResults] = useState(letterTemplates);
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    const countryFilteredTemplates = getFilteredTemplates();
-    const searchResults = query 
-      ? countryFilteredTemplates.filter(template =>
-          template.title.toLowerCase().includes(query.toLowerCase()) ||
-          template.description.toLowerCase().includes(query.toLowerCase()) ||
-          template.category.toLowerCase().includes(query.toLowerCase())
-        )
-      : countryFilteredTemplates;
-    setSearchResults(searchResults);
+    setSearchResults(searchLetters(query));
   };
 
-  const handleCountryChange = (country: Country) => {
-    setSelectedCountry(country);
-    // Re-apply search with new country filter
-    const newFilteredTemplates = letterTemplates.filter(template => 
-      template.templates[country] && 
-      template.templates[country].trim() !== ''
-    );
-    
-    const newSearchResults = searchQuery 
-      ? newFilteredTemplates.filter(template =>
-          template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          template.category.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : newFilteredTemplates;
-    setSearchResults(newSearchResults);
-  };
-
-  const popularTemplates = filteredTemplates.slice(0, 4);
-  const categories = [...new Set(filteredTemplates.map(letter => letter.category))];
+  const popularTemplates = letterTemplates.slice(0, 4);
+  const categories = [...new Set(letterTemplates.map(letter => letter.category))];
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,26 +38,8 @@ const Index = () => {
             Simply fill in your details and download instantly.
           </p>
           
-          <div className="mb-8">
+          <div className="mb-12">
             <SearchBar onSearch={handleSearch} />
-          </div>
-          
-          {/* Country Selection */}
-          <div className="flex justify-center mb-12">
-            <div className="flex items-center gap-3 bg-card border rounded-lg p-3 shadow-sm">
-              <Globe className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">Country:</span>
-              <Select value={selectedCountry} onValueChange={handleCountryChange}>
-                <SelectTrigger className="w-32 h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="INDIA">India</SelectItem>
-                  <SelectItem value="US">United States</SelectItem>
-                  <SelectItem value="UK">United Kingdom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
@@ -159,7 +100,7 @@ const Index = () => {
       </section>
 
       {/* Search Results */}
-      {searchResults.length < filteredTemplates.length && (
+      {searchResults.length < letterTemplates.length && (
         <section className="py-12 px-4 bg-muted/20">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8">
