@@ -26,34 +26,23 @@ export const generatePDF = (
   const pageHeight = doc.internal.pageSize.height;
   const maxWidth = pageWidth - margin * 2;
 
-  // Detect if content contains HTML tags (rich text)
+  // Convert HTML content to plain text for consistent PDF rendering
   const isHTML = /<\/?[a-z][\s\S]*>/i.test(content);
-
+  
   if (isHTML) {
-    // Wrap content to apply base font settings while preserving inline styles like <b>, <i>, <u>
-    const cssFontFamily =
-      fontFamily === 'helvetica'
-        ? 'Helvetica, Arial, sans-serif'
-        : fontFamily === 'times'
-        ? '"Times New Roman", Times, serif'
-        : '"Courier New", Courier, monospace';
-
-    const wrapped = `<div style="font-family:${cssFontFamily}; font-size:${fontSize}px; line-height:1.6;">${content}</div>`;
-
-    // Render HTML content to PDF and then save
-    // Note: html rendering is async; we'll save in the callback
-    // @ts-ignore - html typings may vary depending on jspdf version
-    doc.html(wrapped, {
-      x: margin,
-      y: margin,
-      width: maxWidth,
-      html2canvas: { scale: 1 },
-      callback: () => {
-        doc.save(filename);
-      },
-    });
-
-    return;
+    // Strip HTML tags and convert to plain text
+    content = content
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .trim();
   }
 
   // Plain text rendering (no HTML) - original behavior
