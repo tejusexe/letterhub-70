@@ -52,7 +52,7 @@ export const generatePDF = (
   // Split content into lines
   const lines = content.split('\n');
   let yPosition = margin;
-  const lineHeight = Math.max(6, Math.round(fontSize * 1.3));
+  const lineHeight = Math.max(4, Math.round(fontSize * 1.15));
 
   lines.forEach((line) => {
     // Check if we need a new page
@@ -83,9 +83,9 @@ export const generatePDF = (
       yPosition += lineHeight;
     });
 
-  // Add extra space for empty lines
+  // Add minimal extra space for paragraph breaks
     if (line.trim() === '') {
-      yPosition += Math.round(lineHeight * 0.5);
+      yPosition += Math.round(lineHeight * 0.2);
     }
   });
 
